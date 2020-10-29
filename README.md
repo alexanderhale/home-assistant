@@ -34,8 +34,7 @@ These files will be required for the Lineage OS installation:
 - [addonsu 17.1](./tablet_setup/lineage_os/addonsu-17.1-arm.zip)
     - Saved in this repository in case [the source](https://androidfilehost.com/?fid=8889791610682882454) is no longer available.
 - [sysrepart.zip](./tablet_setup/lineage_os/sysrepart.zip)
-    - Saved in this repository in case the source is no longer available.
-    - Source: the attached files of [this forum post](https://forum.xda-developers.com/showpost.php?p=76278047&postcount=19).
+    - Saved in this repository in case [the source](https://forum.xda-developers.com/showpost.php?p=76278047&postcount=19) is no longer available.
 - [GApps](https://opengapps.org/) (optional)
     - select ARM, Android 10.0, nano size
 
@@ -53,21 +52,37 @@ Install ADB and fastboot on your computer. The Lineage OS wiki has an [article o
 #### Step 3 - Flash TWRP Image
 Run `adb reboot bootloader` in a terminal on the computer. Wait for the device to boot into bootloader mode, then run `fastboot flash recovery <twrp-img-file>`, replacing `<twrp-img-file>` with the path to the TWRP file that you downloaded earlier. Once the flash is complete, run `fastboot reboot`.
 
-Success! TWRP should now be installed. If you want to check that the installation was a success, power off the tablet, then reboot into recovery mode by holding the power and volume down buttons at the same time until the recovery mode screen appears. 
+Success! TWRP should now be installed. To check that the installation was successful, power off the tablet, then reboot into recovery mode by holding the power and volume down buttons at the same time until the recovery mode screen appears. 
 
 TODO insert android recovery mode screenshot.
 
-Use the volume buttons to scroll to the `TODO what is the option called?` option, then press the power button to select it. The TWRP menu should appear.
+Use the volume buttons to scroll to the `Recovery` option, then press the power button to select it. The TWRP menu should appear.
 
 TODO insert TWRP screenshot.
 
-
 ### Install LineageOS
-- TODO look up the steps that the images need to be flashed in.
-- https://forum.xda-developers.com/nexus-7-2013/development/rom-lineageos-17-1-t4038425
-- https://www.reddit.com/r/Nexus7/comments/esy39y/install_android_9_lineage_os_160_on_nexus_7_2013/
-- skipped GApps (ran into size error and I don't really need it for home assistant)
-    - initially skipped the root access installation, but it was needed later on - use addonsu 17.1
+#### Step 1 - Factory Reset
+Confirm that you've backed up everything that was saved on the device. Then, starting from the TWRP home page, navigate to Wipe > Factory Reset, and perform the reset. 
+
+#### Step 2 - Repartition
+The existing partitioning of the device leaves little space for loading the OS and GApps images that we'll be installing in the next step. To check the amount of space, start from the TWRP home page, then navigate to Wipe > Advanced Wipe > System > Repair or Change File System. Take note of the free space listed on the left-hand side of the screen.
+
+Return to the TWRP home screen, then navigate to Install > ADB Sideload. Once the sideload is ready, open a terminal on the computer and run `adb sideload sysrepart.zip`. Confirm on the tablet that the image gets flashed successfully.
+
+Return to Repair or Change File System and check the free space - it should have increased.
+
+#### Step 3 - Flash New OS
+The following files must be loaded in the order listed here. If you don't need the Google Play store on your device, then feel free to skip the GApps step.
+
+From the TWRP home screen, navigate to Install > ADB Sideload. Once the sideload is ready, open a terminal on your computer and run `adb sideload <lineage_os_filename>.zip`. Confirm on the tablet that the image gets flashed successfully.
+
+_Without_ rebooting, select ADB Sideload again, and flash `addonsu-17.1-arm.zip` in the same way. If you want to install Google Play, select ADB Sideload again, and flash the GApps zip. If the GApps flash fails due to a lack of space in the partition, try again using the `pico` size when creating the download from the GApps website. 
+
+Once the images are flashed, select Clear Cache/Davlik, then select Reboot. The tablet should boot into a fresh installation of Lineage OS.
+
+For more information, here are a few threads describing this process:
+- [XDA-Developers Forum](https://forum.xda-developers.com/nexus-7-2013/development/rom-lineageos-17-1-t4038425)
+- [Reddit thread](https://www.reddit.com/r/Nexus7/comments/esy39y/install_android_9_lineage_os_160_on_nexus_7_2013/)
 
 ## Home Assistant Installation
 TODO
