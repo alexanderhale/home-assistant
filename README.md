@@ -15,21 +15,21 @@ The Home Assistant installation guide recommends using a Raspberry Pi to run the
 - peripherals: a Google Home Mini, and a smart plug (peripherals are not required for Home Assistant setup, but most automations you'll want to create will require a peripheral)
 
 
-## Lineage OS Installation
+## LineageOS Installation
 The Nexus 7 tablet stopped receiving software updates as of Android 5 (Lollipop). This version of Android causes lots of incompatibilities, where the most recent version of software no longer supports such an old version of Android. In addition, the tablet I had was running quite slowly - it was bogged down with old files and apps, and the dated operating system likely wasn't helping in terms of speed.
 
-To resolve these issues, I chose to install Lineage OS on the tablet. The latest version at the time of writing is Lineage OS 17.1 (which equates to Android 10). If you want to stick with Android, it may also be possible to install newer versions of Android with similar steps to the ones documented here.
+To resolve these issues, I chose to install LineageOS on the tablet. The latest version at the time of writing is LineageOS 17.1 (which equates to Android 10). If you want to stick with Android, it may also be possible to install newer versions of Android with similar steps to the ones documented here.
 
-Let's dive into the steps required to install Lineage OS on the tablet.
+Let's dive into the steps required to install LineageOS on the tablet.
 
 ### Backup Files
 If you have anything you care about on your Nexus 7 (files, configuration, etc), back it up to another location now. The tablet will be factory reset during the operating system re-install.
 
 ### Download Files
-These files will be required for the Lineage OS installation:
+These files will be required for the LineageOS installation:
 - [Team Win Recovery Project (TWRP)](https://dl.twrp.me/flo/twrp-3.4.0-0-flo.img)
     - The link is to version 3.4.0, but you can select whatever the latest version is.
-- [Lineage OS 17.1](https://lineageos.wickenberg.nu/flo)
+- [LineageOS 17.1](https://lineageos.wickenberg.nu/flo)
     - Navigate to Google > flo, then select the most recent build for version 17.1.
 - [addonsu 17.1](./tablet_setup/lineage_os/addonsu-17.1-arm.zip)
     - Saved in this repository in case [the source](https://androidfilehost.com/?fid=8889791610682882454) is no longer available.
@@ -47,7 +47,7 @@ This can be accomplished using the TWRP app, or by connecting the tablet to a co
 Permission is required to connect the tablet to the computer. On the tablet, enable developer options by finding the "About" section in the settings, then repeatedly tapping the build number section. Enter the developer options menu, then toggle `USB debugging` to on. You can use wireless ADB debugging if you prefer, but file transfers will likely be slower.
 
 #### Step 2 - ADB and Fastboot
-Install ADB and fastboot on your computer. The Lineage OS wiki has an [article on how to do this](https://wiki.lineageos.org/adb_fastboot_guide.html) for various operating systems. Once installed, connect the tablet to the computer, then approve the permissions pop-up that appears on the tablet screen. To confirm that the tablet is accessible via ADB, open a terminal and run `adb devices`. Make sure that the tablet appears in the list as a device. 
+Install ADB and fastboot on your computer. The LineageOS wiki has an [article on how to do this](https://wiki.lineageos.org/adb_fastboot_guide.html) for various operating systems. Once installed, connect the tablet to the computer, then approve the permissions pop-up that appears on the tablet screen. To confirm that the tablet is accessible via ADB, open a terminal and run `adb devices`. Make sure that the tablet appears in the list as a device. 
 
 #### Step 3 - Flash TWRP Image
 Run `adb reboot bootloader` in a terminal on the computer. Wait for the device to boot into bootloader mode, then run `fastboot flash recovery <twrp-img-file>`, replacing `<twrp-img-file>` with the path to the TWRP file that you downloaded earlier. Once the flash is complete, run `fastboot reboot`.
@@ -78,14 +78,64 @@ From the TWRP home screen, navigate to Install > ADB Sideload. Once the sideload
 
 _Without_ rebooting, select ADB Sideload again, and flash `addonsu-17.1-arm.zip` in the same way. If you want to install Google Play, select ADB Sideload again, and flash the GApps zip. If the GApps flash fails due to a lack of space in the partition, try again using the `pico` size when creating the download from the GApps website. 
 
-Once the images are flashed, select Clear Cache/Davlik, then select Reboot. The tablet should boot into a fresh installation of Lineage OS.
+Once the images are flashed, select Clear Cache/Davlik, then select Reboot. The tablet should boot into a fresh installation of LineageOS.
 
 For more information, here are a few threads describing this process:
 - [XDA-Developers Forum](https://forum.xda-developers.com/nexus-7-2013/development/rom-lineageos-17-1-t4038425)
 - [Reddit thread](https://www.reddit.com/r/Nexus7/comments/esy39y/install_android_9_lineage_os_160_on_nexus_7_2013/)
 
 ## Home Assistant Installation
-TODO
+Now that the operating system on the tablet has been swapped from Android to LineageOS, Home Assistant (and related programs) can be installed.
+
+### Install F-Droid
+[F-Droid](https://www.f-droid.org/) is a repository for free apps, analogous to the Google Play store. Head to F-Droid's website and download the latest .apk file. Once downloaded, a pop-up will appear - hit `Install`.
+
+If you included GApps in your LineageOS installation, you could skip F-Droid and get Termux (in then next step) from the Google Play store instead. At the time of writing, some of the Termux add-ons are paid in Google Play (but free in F-Droid). You could even install Termux directly from source, if you wanted to avoid repositoiries completely - but this guide will assume that Termux will be downloaded from an app repository.
+
+### Install Termux
+Most of the Home Assistant installation work will be done on the command line. The most robust UNIX console emulator for Android is Termux. To get Termux, head to F-Droid or Google Play. Search for [Termux](https://f-droid.org/en/packages/com.termux), download it, and install it. While you're here, download and install [Termux:API](https://f-droid.org/en/packages/com.termux.api/) and [Termux:Boot](https://f-droid.org/en/packages/com.termux.boot) as well - we'll need them later.
+
+Since Termux is a command-line, some typing is required, which is not the most conducive to a tablet touch-screen. If you have one, connecting a Bluetooth keyboard would be helpful. If not, you could try a modified on-screen keyboard like [Hacker's Keyboard](https://f-droid.org/en/packages/org.pocketworkstation.pckeyboard/).
+
+### Install Packages
+Open up the Termux app. Look around a little bit - notice that your home directory is `/data/data/com.termux/files/home/`, and the `etc` directory (where packages will be installed) is at `/data/data/com.termux/files/usr/etc/`. This is different than a standard UNIX operating system.
+
+The package manager in Termux is `pkg`, which is a wrapper around `apt`. You can also use the `apt` command directly, but there's usually no need to do so.
+
+Here are the packages to install at this stage:
+`python`: Home Assistant runs in Python, so the language needs to be installed
+`nano`: for viewing and editing files
+`openssh`: TODO
+`termux-api`: to connect with the Termux:API app that is installed on the device
+`make`: to allow Makefiles to run
+`libjpeg-turbo`: to avoid a bug in a later step due to a missing JPEG package
+
+Install the necessary packages with these commands (confirming with `y` when requested):
+```bash
+pkg updates
+pkg upgrade
+pkg install python nano openssh termux-api make libjpeg-turbo
+```
+
+### Install Home Assistant
+The prerequisites are now in place to install Home Assistant. Home Assistant Core is a Python package, available from the PyPi package repository. Here are the commands to run to install it:
+```bash
+# create a virtual environment (optional, but recommended)
+python -m venv hass
+source hass/bin/activate
+
+pip install homeassistant
+```
+
+The virtual environment is optional - if you don't use one, `pip install homeassistant` will simply install the Home Assistant packages in your "base" environment. However, using a virtual environment makes your installation isolated - if you want to update your version of Python or Home Assistant, you could do so in a fresh virtual environment to make sure everything is working properly without impacting your existing installation.
+
+### Run
+Everything is now in place! With your virtual environment activated, execute `hass -v`. During this first startup, keep an eye on the output for error messages, which might indicate that something has been configured incorrectly.
+
+If the startup succeeds, head to `localhost:8123` in a browser on the tablet - the Home Assistant homepage should appear!
+
+For more information, here is a Medium post describing this process:
+- https://lucacesarano.medium.com/install-home-assistant-hass-on-android-no-root-fb65b2341126
 
 ## Addressing Setup
 TODO
@@ -113,6 +163,13 @@ TODO
 
 ## Node-RED Installation
 TODO
+`nodejs`: a prerequisite to installing Node-RED, which will be addressed later in this guide
+	- if you don't plan to use Node-RED, you can leave this out (or install it later)
+
+## Mosquitto MQTT Installation
+TODO
+`mosquitto`: the lightweight [mosquitto MQTT broker](https://mosquitto.org/), for use alongside Home Assistant
+	- if you don't plan to use MQTT, you can leave this out (or install it later)
 
 ## Google Assistant integration with Home Assistant
 TODO
