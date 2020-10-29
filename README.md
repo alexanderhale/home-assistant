@@ -26,12 +26,18 @@ Let's dive into the steps required to install Lineage OS on the tablet.
 If you have anything you care about on your Nexus 7 (files, configuration, etc), back it up to another location now. The tablet will be factory reset during the operating system re-install.
 
 ### Download Files
-These files will be required for the Lineage OS installation: (TODO add links and versions)
-- TWRP
-- Lineage OS 17.1
-- addonsu 17.1
-- sysrepart.zip
-- GApps (optional)
+These files will be required for the Lineage OS installation:
+- [Team Win Recovery Project (TWRP)](https://dl.twrp.me/flo/twrp-3.4.0-0-flo.img)
+    - The link is to version 3.4.0, but you can select whatever the latest version is.
+- [Lineage OS 17.1](https://lineageos.wickenberg.nu/flo)
+    - Navigate to Google > flo, then select the most recent build for version 17.1.
+- [addonsu 17.1](./tablet_setup/lineage_os/addonsu-17.1-arm.zip)
+    - Saved in this repository in case [the source](https://androidfilehost.com/?fid=8889791610682882454) is no longer available.
+- [sysrepart.zip](./tablet_setup/lineage_os/sysrepart.zip)
+    - Saved in this repository in case the source is no longer available.
+    - Source: the attached files of [this forum post](https://forum.xda-developers.com/showpost.php?p=76278047&postcount=19).
+- [GApps](https://opengapps.org/) (optional)
+    - select ARM, Android 10.0, nano size
 
 ### Install TWRP
 TWRP is a custom recovery tool. We'll replace the default system recovery tools on the device with TWRP. This will make it easier to swap the OS on our device.
