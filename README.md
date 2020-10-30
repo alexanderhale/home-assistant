@@ -95,7 +95,7 @@ If you included GApps in your LineageOS installation, you could skip F-Droid and
 ### Install Termux
 Most of the Home Assistant installation work will be done on the command line. The most robust UNIX console emulator for Android is Termux. To get Termux, head to F-Droid or Google Play. Search for [Termux](https://f-droid.org/en/packages/com.termux), download it, and install it. While you're here, download and install [Termux:API](https://f-droid.org/en/packages/com.termux.api/) and [Termux:Boot](https://f-droid.org/en/packages/com.termux.boot) as well - we'll need them later.
 
-Since Termux is a command-line, some typing is required, which is not the most conducive to a tablet touch-screen. If you have one, connecting a Bluetooth keyboard would be helpful. If not, you could try a modified on-screen keyboard like [Hacker's Keyboard](https://f-droid.org/en/packages/org.pocketworkstation.pckeyboard/).
+Since Termux is a command-line, some typing is required, which is not the most conducive to a tablet touch-screen. If you have one, connecting a Bluetooth keyboard would be helpful. If not, you could try a modified on-screen keyboard like [Hacker's Keyboard](https://f-droid.org/en/packages/org.pocketworkstation.pckeyboard/). Before the configuration section later on, we'll connect to the tablet via SSH, so that you can use your computer for the heavier typing required in that section.
 
 ### Install Packages
 Open up the Termux app. Look around a little bit - notice that your home directory is `/data/data/com.termux/files/home/`, and the `etc` directory (where packages will be installed) is at `/data/data/com.termux/files/usr/etc/`. This is different than a standard UNIX operating system.
@@ -127,7 +127,7 @@ source hass/bin/activate
 pip install homeassistant
 ```
 
-The virtual environment is optional - if you don't use one, `pip install homeassistant` will simply install the Home Assistant packages in your "base" environment. However, using a virtual environment makes your installation isolated - if you want to update your version of Python or Home Assistant, you could do so in a fresh virtual environment to make sure everything is working properly without impacting your existing installation.
+The virtual environment is optional - if you don't use one, `pip install homeassistant` will install the Home Assistant packages in your "base" environment. However, using a virtual environment makes your installation isolated - if you want to update your version of Python or Home Assistant, you could do so in a fresh virtual environment to make sure everything is working properly without impacting your existing installation.
 
 ### Run
 Everything is now in place! With your virtual environment activated, execute `hass -v`. During this first startup, keep an eye on the output for error messages, which might indicate that something has been configured incorrectly.
@@ -138,13 +138,42 @@ For more information, here is a Medium post describing this process:
 - https://lucacesarano.medium.com/install-home-assistant-hass-on-android-no-root-fb65b2341126
 
 ## Addressing Setup
-TODO
+Home Assistant is now running on the Nexus 7 tablet, and it is accessible from other devices which are also connected to your home network. To access Home Assistant from another device, find your tablet's network IP address (something like `192.168.2.xx`) by running the `ipconfig` command, or by logging in to your router's admin console (usually at `192.168.2.1`) and finding your tablet in the list of devices. Then, navigate to that address from another device using port 8123: `http://192.168.2.xx:8123`. The Home Assistant interface should load, the same way it does for `localhost:8123` on your tablet.
+
+This setup works fine for basic usage, but it lacks robustness. What if your router re-assigns your tablet a new IP address? What if you want to access your Home Assistant setup when you're away from home? What if you want to connect Home Assistant to an external provider like Google Assistant? These are the types of hurdles that will be addressed in this section.
 
 ### Static IP Address
-TODO
+By default, your tablet gets assigned an IP address by your router in a process called [DHCP](https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol). Since the 'D' in 'DHCP' stands for 'Dynamic', that means that your tablet's assigned IP address could get reassigned at any time, which would break some of the configuration that will be set up during the next few steps.
+
+To assign a 'static' IP address, go into the Setting app on your tablet. Navigate to WiFi, then tap + hold your home netework. Select Manage Network Settings > Show Advanced Options. Change the IP Setting from DHCP to Static. Enter the IP address that you want your tablet to have - the simplest option is to enter the IP address that your tablet already has. If the Gateway doesn't fill in automatically, enter the same value as your IP address, replacing the last section (after the last `.`) with `1`.
+
+TODO verify and add screenshots.
+
+All set! Your tablet will now always receive the same IP address when connected to your home network. For the sake of simplicity in this guide, your tablet's `192.168.x.x` static IP address will now be referred to as the "internal network IP address".
 
 ### Port Forwarding
-TODO
+The configuration above works only when conneceted to your home network. Only your home router knows that, when it receives a request to access `192.168.x.x`, it should "route" that request to your Nexus 7 tablet. To prove this, disconnect your phone from WiFi, connect to data, and navigate to your tablet's internal network IP address. Nothing loads!
+
+Let's fix that. First, some theory. Just like your tablet has an IP address, your entire home network also has an IP address. Think of your router as the "front door" of an apartment building - there is a number outside the door telling the mail carrier to deliver mail to that building (router), then it is the concierge's (router's) job to distribute the mail to the appropriate apartment number (device, like your tablet) in the building.
+
+TODO insert diagram.
+
+To access Home Assistant from outside your home network, we therefore need to know the "building number" (external IP address of your home network) and "apartment number" (port) to which we should send our requests.
+
+To find the IP address of your home network, you can look in your router's admin console, or you can go to [whatismyipaddress.com](https://whatismyipaddress.com/) and look for the IPv4 field. We now know how to reach the correct "building".
+
+To route requests to the correct device (apartment), we now need to set up port forwarding. Log in to your router's admin console and find the port forwarding configuration area. Set up a new port forward with the following:
+- External port: 8123
+- Internal port: 8123
+- Internal address: your tablet's internal network IP address
+
+Now, when your router receives a request to `<external-ip-address>:8123`, it will send it to `<internal-ip-address>:8123` - if you recall, this is the address where our Home Assistant installation is running. Test it out on your phone (being sure that you're still connected to mobile data).
+
+Great! The Home Assistant installation is now accessible from outside your home network. However, two issues remain:
+- The digits of the external IP address are hard to remember, and some external services (like Google Assistant) will require us to have a proper hostname.
+- We are still accessing Home Assistant via an unencrypted `http://` connection, meaning an intruder could see your username and password as you enter them.
+
+We'll resolve those two issues in the next sections.
 
 ### DNS Routing
 TODO
@@ -152,13 +181,16 @@ TODO
 ### SSL Certificate
 TODO
 
-### Reverse Proxy
+#### Reverse Proxy
 TODO
 
 ### Remote SSH Access
 TODO
 
 ### Startup at Reboot
+TODO termux-wake-lock?
+
+## Configuring Home Assistant
 TODO
 
 ## Node-RED Installation
