@@ -176,13 +176,51 @@ Great! The Home Assistant installation is now accessible from outside your home 
 We'll resolve those two issues in the next sections.
 
 ### DNS Routing
-TODO
+The addressing setup completed in the previous step is, for the most part, how all internet traffic gets routed to the correct destination. You'll notice, however, that when you want to make a Google search, you don't navigate to `172.217.1.4` - you navigate to `google.com`. This mapping of human-friendly names to IP addresses is called a "Domain Name System" (DNS).
 
-### SSL Certificate
-TODO
+Registering a domain name - say, `myhomeassistant.org` - means that you're reserving the right to route traffic arriving at `myhomeassistant.org` to a web server owned by you. Most domain names cost money to reserve, but there are some services like [DuckDNS](https://www.duckdns.org/) and [No-IP](https://www.noip.com/) which offer free domain names. These services make money with their "premium" offerings, which are not required to complete this guide.
+
+One additional feature of domain name services is "dynamic" DNS. The IP address of your router is provided by your internet service provider (ISP), and is liable to change at any time. If you were using that IP address to access your home assistant setup, any such change would break your configuration. A dynamic DNS provider takes this change in stride, automatically sending traffic to the updated IP address whenever it changes.
+
+To set up your domain name, head to [No-IP](https://www.noip.com) and create an account. Create whatever hostname you'd like - make it something memorable! We'll call it `hass.noip.org` for simplicity in this guide. Set "IP / Target" to the external IP address of your network, then save the hostname.
+
+After waiting a few hours for the new DNS record to propogate through name servers (or up to 2 days, according to No-IP's documentation), navigating to `http://hass.noip.org:8123` should now bring up your Home Assistant instance. Success!
+
+If you prefer to use DuckDNS or another provider to reserve your hostname, that's no problem - the steps above should work the same.
 
 #### Reverse Proxy
-TODO
+One common gotcha: if `http://hass.noip.org:8123` does not load for you when connected to your local WiFi, but does work when connected to mobile data, it's likely because your router does not support NAT Loopback (also known as NAT Hairpinning).
+
+TODO finish this.
+
+### SSL Certificate
+When navigating to `http://hass.noip.org` in the previous step, a notice probably appeared on the left side of your address bar, saying something like "Not Secure!", with an open padlock logo. This is because an `http` connection is _unencrypted_ - traffic to and from the server is in plain text, and could be ready by anybody intercepting the traffic via a "man in the middle" attack. An `https` connection (where the `s` stands for "secure") is a more secure option. If you're not too concerned about security, you could skip this step - but it is required in order to integrate Google Assistant with Home Assistant in later steps of this guide.
+
+To allow connections via `https`, your server first needs a TLS/SSL certificate. This type of certificate serves two purposes:
+1. It includes the owner of the certificate, and includes the domain that content signed with this certificate should be coming from (preventing another server from spoofing this server). 
+2. It provides a public key, which anybody wishing to communicate with a server can use to encrypt their traffic.
+
+The certificate is issued by a Certificate Authority, which, as the name says, is an authoratitive body that has been trusted to issue certificates.
+
+Just like with domains, there are free and paid Certificate Authorities from which certificates can be issued. We'll be using [LetsEncrypt](https://letsencrypt.org/) in this guide, which is a free option.
+
+To receive a certificate from LetsEncrypt, you must prove that you "control" the domain for which you are requesting a certificate. That is, traffic to `hass.noip.org` goes to your server, and not somebody else's. This prevents you from generating a certificate for a server that does not belong to you.
+
+LetsEncrypt provides the handy certbot tool for proving you own a domain, but it is not available in Termux, so some extra steps are required. 
+
+__Option 1 - Complete the HTTP-01 Challenge Elsewhere__
+- set up router to forward port 80 to port 80 of your computer
+- install Apache on your computer
+- run certbot in standalone mode to complete the challenge
+- transfer the files from your computer to the tablet via ADB
+- remove the port forward
+
+__Option 2 - Complete the DNS-01 Challenge__
+https://www.splitbrain.org/blog/2017-08/10-homeassistant_duckdns_letsencrypt
+
+Once the certificate is generated, place the certificate files in the correct place and update the Home Assistant config.
+
+More information: https://community.home-assistant.io/t/installing-tls-ssl-using-lets-encrypt/196975
 
 ### Remote SSH Access
 TODO
