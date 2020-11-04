@@ -105,7 +105,6 @@ The package manager in Termux is `pkg`, which is a wrapper around `apt`. You can
 Here are the packages to install at this stage:
 `python`: Home Assistant runs in Python, so the language needs to be installed
 `nano`: for viewing and editing files
-`openssh`: TODO
 `termux-api`: to connect with the Termux:API app that is installed on the device
 `make`: to allow Makefiles to run
 `libjpeg-turbo`: to avoid a bug in a later step due to a missing JPEG package
@@ -188,10 +187,7 @@ After waiting a few hours for the new DNS record to propogate through name serve
 
 If you prefer to use DuckDNS or another provider to reserve your hostname, that's no problem - the steps above should work the same.
 
-#### Reverse Proxy
-One common gotcha: if `http://hass.noip.org:8123` does not load for you when connected to your local WiFi, but does work when connected to mobile data, it's likely because your router does not support NAT Loopback (also known as NAT Hairpinning).
-
-TODO finish this.
+One common gotcha: if `http://hass.noip.org:8123` does not load for you when connected to your local WiFi, but does work when connected to mobile data, it's likely because your router does not support NAT loopback (also known as NAT Hairpinning). See Reverse Proxy below.
 
 ### SSL Certificate
 When navigating to `http://hass.noip.org` in the previous step, a notice probably appeared on the left side of your address bar, saying something like "Not Secure!", with an open padlock logo. This is because an `http` connection is _unencrypted_ - traffic to and from the server is in plain text, and could be ready by anybody intercepting the traffic via a "man in the middle" attack. An `https` connection (where the `s` stands for "secure") is a more secure option. If you're not too concerned about security, you could skip this step - but it is required in order to integrate Google Assistant with Home Assistant in later steps of this guide.
@@ -222,11 +218,73 @@ Once the certificate is generated, place the certificate files in the correct pl
 
 More information: https://community.home-assistant.io/t/installing-tls-ssl-using-lets-encrypt/196975
 
+### Reverse Proxy
+Most ISP-provided routers don't support NAT loopback, which means that the domain name configured above won't work within the home network. There are a few options to get around this:
+- Swap out Router: replacing your router with one that supports NAT loopback is the most straightforward solution, but is not free, and might not be possible depending on your ISP.
+- Split-Brain DNS: this involves setting up a DNS server which handles the routing of traffic on your home network. With a normal installation on a proper server this might be a good option, but I'm wary of relying on the Nexus 7 tablet for DNS resolution of all my home traffic.
+- Reverse Proxy: this is the approach used in this guide.
+
+A [reverse proxy](https://en.wikipedia.org/wiki/Reverse_proxy) is a layer placed in front of a web server to handle incoming traffic. When using a reverse proxy, all traffic arriving at the web server is coming from one source - the proxy - simplifying the configuration required at the web server.
+
+We'll be using [NGINX](https://www.nginx.com/) as our proxy server. Install it on the tablet with `pkg install nginx`. We'll also need OpenSSL: `pkg install openssl`.
+
+Navigate to `~/../usr/etc/nginx/ssl/`, then execute `openssl dhparam -out dhparams.pem 2048`. You may need to execute this command as root - if that's the case, you can prepend `su` to that command, or execute it in a root shell via ADB.
+
+Create the file `~/../usr/etc/nginx/sites-available/hass`, then enter the config below:
+
+TODO add config file.
+
+All traffic to Home Assistant should be routed through the proxy - to configure this, head to `~/.homeassistant/configuration.yml` and change the `http` section:
+
+```
+http:
+	server_host: 127.0.0.1  # only permit traffic from localhost (i.e. from the reverse proxy, which is running on the same machine as the tablet)
+	use_x_forwarded_for: true
+	trusted_proxies: 127.0.0.1
+```
+
+Finally, update the port forwarding in your router. Remove the existing port forwarding rule at port 8123. Add two new port forwarding rules:
+- for HTTP traffic: external port: 80, internal port: 80, internal IP address: your tablet
+- for HTTPS traffic: external port: 443, internal port: 443, internal IP address: your tablet
+
+Start nginx by running `nginx`. Home Assistant should now be accessible via `http://hass.noip.org` or `https://hass.noip.org` from any network.
+
+
+For additional information, [here's a guide](https://community.home-assistant.io/t/reverse-proxy-using-nginx/196954) on the subject.
+
 ### Remote SSH Access
-TODO
+Even with an external wireless keyboard, configuring the Nexus 7 tablet on the command line isn't the most user-friendly process. Access the command line via the Android Debug Bridge allows the use of the keyboard on your computer (and allows root access) via `adb shell`, but requires the tablet be tethered to the computer. To help, let's set up SSH access to the tablet so that you can access the command line remotely.
+
+Here are the steps:
+1. On the Termux command line, install OpenSSH: `pkg install openssh`.
+2. On the Termux command line, enerate an OpenSSH key pair: `ssh-keygen`
+	- This will will create `~/.ssh/id_rsa` and `~/.ssh/id_rsa.pub`.
+	- On the tablet, place the contents of `~/.ssh/id_rsa.pub` in `~/.ssh/authorized_keys`, change the permissions of `~/.ssh/authorized_keys` to 600, and ensure the permissions of `~/.ssh` are 700.
+	- Copy `~/.ssh/id_rsa` to the computer via ADB, and add it to your SSH client of choice.
+3. On the Termux command line, execute `sshd`.
+
+You should now be able to access the tablet from your computer: e.g. `ssh 192.168.2.123 -p 8022`.
+
+To access the tablet from outside your home network, port forwarding must be configured. This also provides the opportunity of using the default SSH port 22. In the same manner as the Port Forwarding section above, add a new entry in your router that forwards incoming traffic at port 22 to your tablet's IP address at port 8022.
+
+You should now be able to access the tablet from outside your home network: e.g. `ssh hass.noip.org`.
+
+Some formatting issues may come up in the terminal when accessing the tablet via SSH - executing `export TERM=xterm-256color` in your remote terminal (after logging in via SSH) should resolve most of those issues.
+
+For more information, check out [this article](https://glow.li/posts/run-an-ssh-server-on-your-android-with-termux/). 
 
 ### Startup at Reboot
-TODO termux-wake-lock?
+If the tablet ever restarts (e.g. if it crashes, installs a software update, or runs out of battery), a sequence of startup commands can be put in place so that Home Assistant starts up automatically upon reboot. Here are some commands to include:
+- `termux-wake-lock`: don't let the tablet go to sleep
+- `sshd`: enable remote access
+- `nginx`: start up the remote proxy server
+- `mosquitto -d`: start MQTT in the background (only if you're using MQTT - see below)
+- `hass -d`: start Home Assistant in the background
+- `node-red`: start Node-RED (only if you're using Node-RED - see below)
+
+TODO insert embedded termux-boot file, and add it to the repo.
+
+TODO do we also have to configure something where the Termux app starts up upon reboot?
 
 ## Configuring Home Assistant
 TODO
