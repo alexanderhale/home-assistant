@@ -230,15 +230,70 @@ We'll be using [NGINX](https://www.nginx.com/) as our proxy server. Install it o
 
 Navigate to `~/../usr/etc/nginx/ssl/`, then execute `openssl dhparam -out dhparams.pem 2048`. You may need to execute this command as root - if that's the case, you can prepend `su` to that command, or execute it in a root shell via ADB.
 
-Create the file `~/../usr/etc/nginx/sites-available/hass`, then enter the config below:
+Create the file `~/../usr/etc/nginx/nginx.conf`, then enter the config below:
 
-TODO add config file.
+```
+worker_processes 	1;
+
+events {
+	worker_connections 	1024;
+}
+
+http {
+	include 		mime.types;
+	default_type	application/octet-stream;
+
+	sendfile	on;
+
+	keepalive_timeout	65;
+
+	map $http_upgrade $connection_upgrade {
+		default 	upgrade;
+		''			close;
+	}
+
+	server {
+		server_name		hass.noip.org;
+
+		listen [::]:8080 default_server ipv6only=off;
+		return 301 https://$host$request_uri;
+	}
+
+	server {
+		server_name 	hass.noip.org;
+
+		ssl_certificate			/data/data/com.termux/files/home/certificates/fullchain.pem;
+		ssl_certificate_key 	/data/data/com.termux/files/home/certificates/privkey.pem;
+		ssl_dhparam				/data/data/com.termux/files/usr/etc/nginx/ssl/dhparams.pem;
+
+		listen [::]:8443 ssl default_server ipv6only=off http2;
+		add_header Strict-Transport-Security "max-age=31536000; includeSubdomains";
+
+		ssl_protocols TLSv1.2;
+		ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4"
+		ssl_prefer_server_ciphers on;
+		ssl_session_cache shared:SSL:10m;
+
+		proxy_buffering off;
+
+		location / {
+			proxy_pass http://127.0.0.1:8123;
+			proxy_set_header Host $host;
+			proxy_redirect http:// https://;
+			proxy_http_version 1.1;
+			proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+			proxy_set_header Upgrade $http_upgrade;
+			proxy_set_header Connection $connection_upgrade
+		}
+	}
+}
+```
 
 All traffic to Home Assistant should be routed through the proxy - to configure this, head to `~/.homeassistant/configuration.yml` and change the `http` section:
 
 ```
 http:
-	server_host: 127.0.0.1  # only permit traffic from localhost (i.e. from the reverse proxy, which is running on the same machine as the tablet)
+	server_host: 127.0.0.1  # optional: only permit traffic from localhost (i.e. from the reverse proxy, which is running on the same machine as the tablet)
 	use_x_forwarded_for: true
 	trusted_proxies: 127.0.0.1
 ```
@@ -274,17 +329,32 @@ Some formatting issues may come up in the terminal when accessing the tablet via
 For more information, check out [this article](https://glow.li/posts/run-an-ssh-server-on-your-android-with-termux/). 
 
 ### Startup at Reboot
-If the tablet ever restarts (e.g. if it crashes, installs a software update, or runs out of battery), a sequence of startup commands can be put in place so that Home Assistant starts up automatically upon reboot. Here are some commands to include:
-- `termux-wake-lock`: don't let the tablet go to sleep
-- `sshd`: enable remote access
-- `nginx`: start up the remote proxy server
-- `mosquitto -d`: start MQTT in the background (only if you're using MQTT - see below)
-- `hass -d`: start Home Assistant in the background
-- `node-red`: start Node-RED (only if you're using Node-RED - see below)
+If the tablet ever restarts (e.g. if it crashes, installs a software update, or runs out of battery), a sequence of startup commands can be put in place so that Home Assistant starts up automatically upon reboot. To make this happpen, first install the Termux:boot application from Google Play or F-Droid. Once installed, launch the app once - this will configure Termux to launch when the system starts after a reboot.
 
-TODO insert embedded termux-boot file, and add it to the repo.
+The sequence of commands to execute on startup can be placed in a file in ~/.termux/boot/. Here's an example boot sequence:
+```bash
+#! /data/data/com.termux/files/usr/bin/sh
 
-TODO do we also have to configure something where the Termux app starts up upon reboot?
+# prevent system from sleeping
+termux-wake-lock
+
+# enable remote access
+sshd
+
+# start reverse proxy (in the background by default)
+nginx
+
+# start MQTT in the background
+mosquitto -d
+
+# start home assistant in the background
+source ~/hass/bin/activate
+hass --daemon
+deactivate
+
+# start node-red
+node-red
+```
 
 ## Configuring Home Assistant
 TODO
