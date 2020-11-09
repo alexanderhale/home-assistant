@@ -1,4 +1,4 @@
-# home-assistant
+![HASS + Nexus7](docs/images/hass_nexus7.png)
 [Home Assistant](https://www.home-assistant.io/) installation on a Google Nexus 7 tablet. A similar setup process can be followed for any Android device.
 
 ## Background
@@ -31,9 +31,9 @@ These files will be required for the LineageOS installation:
     - The link is to version 3.4.0, but you can select whatever the latest version is.
 - [LineageOS 17.1](https://lineageos.wickenberg.nu/flo)
     - Navigate to Google > flo, then select the most recent build for version 17.1.
-- [addonsu 17.1](./tablet_setup/lineage_os/addonsu-17.1-arm.zip)
+- [addonsu 17.1](docs/tablet_setup/lineage_os/addonsu-17.1-arm.zip)
     - Saved in this repository in case [the source](https://androidfilehost.com/?fid=8889791610682882454) is no longer available.
-- [sysrepart.zip](./tablet_setup/lineage_os/sysrepart.zip)
+- [sysrepart.zip](docs/tablet_setup/lineage_os/sysrepart.zip)
     - Saved in this repository in case [the source](https://forum.xda-developers.com/showpost.php?p=76278047&postcount=19) is no longer available.
 - [GApps](https://opengapps.org/) (optional)
     - select ARM, Android 10.0, nano size
@@ -54,13 +54,11 @@ Run `adb reboot bootloader` in a terminal on the computer. Wait for the device t
 
 Success! TWRP should now be installed. To check that the installation was successful, power off the tablet, then reboot into recovery mode by holding the power and volume down buttons at the same time until the recovery mode screen appears. 
 
-![Android Recovery Mode Screen ()](docs/images/android_recovery_mode.jpg)
-[Image source](https://www.cleverfiles.com/howto/wp-content/uploads/2018/04/android-recovery-mode.jpg)
+[![Android Recovery Mode Screen ()](docs/images/android_recovery_mode.jpg)](https://www.cleverfiles.com/howto/wp-content/uploads/2018/04/android-recovery-mode.jpg)
 
 Use the volume buttons to scroll to the `Recovery` option, then press the power button to select it. The TWRP menu should appear.
 
-![TWRP Homepage](docs/images/twrp_homepage.png)
-[Image source](https://upload.wikimedia.org/wikipedia/commons/e/e0/TWRP_3.0.0-0.png)
+[![TWRP Homepage](docs/images/twrp_homepage.png)](https://upload.wikimedia.org/wikipedia/commons/e/e0/TWRP_3.0.0-0.png)
 
 ### Install LineageOS
 #### Step 1 - Factory Reset
@@ -147,8 +145,7 @@ By default, your tablet gets assigned an IP address by your router in a process 
 
 To assign a 'static' IP address, go into the Setting app on your tablet. Navigate to WiFi, then tap + hold your home netework. Select Manage Network Settings > Show Advanced Options. Change the IP Setting from DHCP to Static. Enter the IP address that you want your tablet to have - the simplest option is to enter the IP address that your tablet already has. If the Gateway doesn't fill in automatically, enter the same value as your IP address, replacing the last section (after the last `.`) with `1`.
 
-![Static IP Settings](docs/images/static_ip.png)
-[Image source](https://i0.wp.com/thedroidreview.com/wp-content/uploads/2016/03/Set-Static-IP-on-Android.png?fit=900%2C714&ssl=1)
+[![Static IP Settings](docs/images/static_ip.png)](https://i0.wp.com/thedroidreview.com/wp-content/uploads/2016/03/Set-Static-IP-on-Android.png?fit=900%2C714&ssl=1)
 
 All set! Your tablet will now always receive the same IP address when connected to your home network. For the sake of simplicity in this guide, your tablet's `192.168.x.x` static IP address will now be referred to as the "internal network IP address".
 
@@ -157,8 +154,7 @@ The configuration above works only when conneceted to your home network. Only yo
 
 Let's fix that. First, some theory. Just like your tablet has an IP address, your entire home network also has an IP address. Think of your router as the "front door" of an apartment building - there is a number outside the door telling the mail carrier to deliver mail to that building (router), then it is the concierge's (router's) job to distribute the mail to the appropriate apartment number (device, like your tablet) in the building.
 
-![Internal vs External IP Address](docs/images/internal_external_ip.png)
-[Image source](https://troypoint.com/wp-content/uploads/2019/08/internal-vs-external-ip-address-diagram-600x351.png)
+[![Internal vs External IP Address](docs/images/internal_external_ip.png)](https://troypoint.com/wp-content/uploads/2019/08/internal-vs-external-ip-address-diagram-600x351.png)
 
 To access Home Assistant from outside your home network, we therefore need to know the "building number" (external IP address of your home network) and "apartment number" (port) to which we should send our requests.
 
