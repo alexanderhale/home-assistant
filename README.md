@@ -2,25 +2,25 @@
 [Home Assistant](https://www.home-assistant.io/) installation on a Google Nexus 7 tablet. A similar setup process can be followed for any Android device.
 
 ## Background
-I print out a hard copy of the New York Times crossword puzzle quite regularly. Realizing that the steps to navigate to the puzzle and print it out were the same each time, my first thought was to to create an automation with Google Assistant and IFTTT. Unfortunately, the process is too complex for those tools: the URL of the crossword changes each day, the puzzle needs to be downloaded from that URL, then the downloaded puzzle needs to be sent to my printer.
+I like to print out a hard copy of the New York Times crossword puzzle. Navigating to the puzzle and printing it out was making me feel like a human `for` loop, so I tried to create an automation with Google Assistant and IFTTT. Unfortunately, the process is too complex for those tools: the URL of the crossword changes each day, the puzzle needs to be downloaded from that URL, then the puzzle needs to be sent to the printer.
 
-Further research pointed me toward [Home Assistant](https://www.home-assistant.io), which has all the tools needed for this task. In addition, Home Assistant is extensible: it requires much more setup than IFTTT, but once set up, it is ready for all sorts of automations which I haven't even thought of yet.
+Further research pointed me toward [Home Assistant](https://www.home-assistant.io), which has all the tools needed for this task. In addition, Home Assistant is extensible: it requires much more setup than IFTTT, but once set up, it is ready for all sorts of automations beyond a crossword printout.
 
-The Home Assistant installation guide recommends using a Raspberry Pi to run the automation server. I had a Google Nexus 7 tablet lying around, so I set out to make use of it instead of buying a new device. An additional benefit is that the tablet can be used as a wall-mounted UI for Home Assistant - this is something you can do regardless of where the Home Assistant server is hosted, but this setup allows the server and UI to be run on one device.
+The Home Assistant installation guide recommends using a Raspberry Pi to run the automation server. I had a Google Nexus 7 tablet lying around, so I set out to make use of it instead. An additional benefit is that the tablet can be used as a wall-mounted UI for Home Assistant - this is something you can do regardless of where the Home Assistant server is hosted, but this setup allows the server and UI to be run on one device.
 
 ## Prerequisites
-- hardware: Google Nexus 7 (2013) tablet
-- software: Android 5.0.0
-- tools: a computer, and a micro USB cable to connect the tablet to the computer
-- peripherals: a Google Home Mini, and a smart plug (peripherals are not required for Home Assistant setup, but most automations you'll want to create will require a peripheral)
+- Hardware: Google Nexus 7 (2013) tablet
+	- This same process should work for any Android device.
+- Software: Android 5.0.0
+- Tools: a computer, and a micro USB cable to connect the tablet to the computer
+- Peripherals: a Google Home Mini, and a smart plug 
+     - Peripherals are not required for Home Assistant setup, but most automations you'll want to create will require at least one peripheral.
 
 
 ## LineageOS Installation
-The Nexus 7 tablet stopped receiving software updates as of Android 5 (Lollipop). This version of Android causes lots of incompatibilities, where the most recent version of software no longer supports such an old version of Android. In addition, the tablet I had was running quite slowly - it was bogged down with old files and apps, and the dated operating system likely wasn't helping in terms of speed.
+The Nexus 7 tablet stopped receiving software updates as of Android 5 (Lollipop). This version of Android causes lots of incompatibilities, where the most recent version of software no longer supports such an old version of Android. In addition, an old tablet is likely to be bogged down with old files and apps - an operating system refresh removes those and speeds the tablet up.
 
-To resolve these issues, I chose to install LineageOS on the tablet. The latest version at the time of writing is LineageOS 17.1 (which equates to Android 10). If you want to stick with Android, it may also be possible to install newer versions of Android with similar steps to the ones documented here.
-
-Let's dive into the steps required to install LineageOS on the tablet.
+You may be able to install more recent versions of Android instead, if you're able to find a ROM for it online. An easier approach is to install [LineageOS](https://www.lineageos.org/), which is a free and open-source Android distribution. The latest version at the time of writing is LineageOS 17.1 (which equates to Android 10). Let's dive into the steps required to install LineageOS on the tablet.
 
 ### Backup Files
 If you have anything you care about on your Nexus 7 (files, configuration, etc), back it up to another location now. The tablet will be factory reset during the operating system re-install.
@@ -44,7 +44,7 @@ TWRP is a custom recovery tool. We'll replace the default system recovery tools 
 This can be accomplished using the TWRP app, or by connecting the tablet to a computer and using the Android Debug Bridge (ADB). This guide will use ADB - see [this TWRP installation guide](https://www.xda-developers.com/how-to-install-twrp/) for more details on both options.
 
 #### Step 1 - Enable USB Debugging
-Permission is required to connect the tablet to the computer. On the tablet, enable developer options by finding the "About" section in the settings, then repeatedly tapping the build number section. Enter the developer options menu, then toggle `USB debugging` to on. You can use wireless ADB debugging if you prefer, but file transfers will likely be slower.
+Permission is required to connect the tablet to the computer. On the tablet, enable developer options by finding the "About" section in the settings, then repeatedly tapping the build number section. Enter the developer options menu, then toggle `USB debugging` to on. You can use wireless ADB debugging if you prefer, but file transfers will be slower.
 
 #### Step 2 - ADB and Fastboot
 Install ADB and fastboot on your computer. The LineageOS wiki has an [article on how to do this](https://wiki.lineageos.org/adb_fastboot_guide.html) for various operating systems. Once installed, connect the tablet to the computer, then approve the permissions pop-up that appears on the tablet screen. To confirm that the tablet is accessible via ADB, open a terminal and run `adb devices`. Make sure that the tablet appears in the list as a device. 
@@ -54,11 +54,13 @@ Run `adb reboot bootloader` in a terminal on the computer. Wait for the device t
 
 Success! TWRP should now be installed. To check that the installation was successful, power off the tablet, then reboot into recovery mode by holding the power and volume down buttons at the same time until the recovery mode screen appears. 
 
-TODO insert android recovery mode screenshot.
+![Android Recovery Mode Screen ()](docs/images/android_recovery_mode.jpg)
+[Image source](https://www.cleverfiles.com/howto/wp-content/uploads/2018/04/android-recovery-mode.jpg)
 
 Use the volume buttons to scroll to the `Recovery` option, then press the power button to select it. The TWRP menu should appear.
 
-TODO insert TWRP screenshot.
+![TWRP Homepage](docs/images/twrp_homepage.png)
+[Image source](https://upload.wikimedia.org/wikipedia/commons/e/e0/TWRP_3.0.0-0.png)
 
 ### Install LineageOS
 #### Step 1 - Factory Reset
@@ -133,8 +135,7 @@ Everything is now in place! With your virtual environment activated, execute `ha
 
 If the startup succeeds, head to `localhost:8123` in a browser on the tablet - the Home Assistant homepage should appear!
 
-For more information, here is a Medium post describing this process:
-- https://lucacesarano.medium.com/install-home-assistant-hass-on-android-no-root-fb65b2341126
+For more information, here is [a Medium post](https://lucacesarano.medium.com/install-home-assistant-hass-on-android-no-root-fb65b2341126) describing this process:
 
 ## Addressing Setup
 Home Assistant is now running on the Nexus 7 tablet, and it is accessible from other devices which are also connected to your home network. To access Home Assistant from another device, find your tablet's network IP address (something like `192.168.2.xx`) by running the `ipconfig` command, or by logging in to your router's admin console (usually at `192.168.2.1`) and finding your tablet in the list of devices. Then, navigate to that address from another device using port 8123: `http://192.168.2.xx:8123`. The Home Assistant interface should load, the same way it does for `localhost:8123` on your tablet.
@@ -146,7 +147,8 @@ By default, your tablet gets assigned an IP address by your router in a process 
 
 To assign a 'static' IP address, go into the Setting app on your tablet. Navigate to WiFi, then tap + hold your home netework. Select Manage Network Settings > Show Advanced Options. Change the IP Setting from DHCP to Static. Enter the IP address that you want your tablet to have - the simplest option is to enter the IP address that your tablet already has. If the Gateway doesn't fill in automatically, enter the same value as your IP address, replacing the last section (after the last `.`) with `1`.
 
-TODO verify and add screenshots.
+![Static IP Settings](docs/images/static_ip.png)
+[Image source](https://i0.wp.com/thedroidreview.com/wp-content/uploads/2016/03/Set-Static-IP-on-Android.png?fit=900%2C714&ssl=1)
 
 All set! Your tablet will now always receive the same IP address when connected to your home network. For the sake of simplicity in this guide, your tablet's `192.168.x.x` static IP address will now be referred to as the "internal network IP address".
 
@@ -155,7 +157,8 @@ The configuration above works only when conneceted to your home network. Only yo
 
 Let's fix that. First, some theory. Just like your tablet has an IP address, your entire home network also has an IP address. Think of your router as the "front door" of an apartment building - there is a number outside the door telling the mail carrier to deliver mail to that building (router), then it is the concierge's (router's) job to distribute the mail to the appropriate apartment number (device, like your tablet) in the building.
 
-TODO insert diagram.
+![Internal vs External IP Address](docs/images/internal_external_ip.png)
+[Image source](https://troypoint.com/wp-content/uploads/2019/08/internal-vs-external-ip-address-diagram-600x351.png)
 
 To access Home Assistant from outside your home network, we therefore need to know the "building number" (external IP address of your home network) and "apartment number" (port) to which we should send our requests.
 
@@ -216,7 +219,7 @@ https://www.splitbrain.org/blog/2017-08/10-homeassistant_duckdns_letsencrypt
 
 Once the certificate is generated, place the certificate files in the correct place and update the Home Assistant config.
 
-More information: https://community.home-assistant.io/t/installing-tls-ssl-using-lets-encrypt/196975
+More information [can be found here](https://community.home-assistant.io/t/installing-tls-ssl-using-lets-encrypt/196975).
 
 ### Reverse Proxy
 Most ISP-provided routers don't support NAT loopback, which means that the domain name configured above won't work within the home network. There are a few options to get around this:
