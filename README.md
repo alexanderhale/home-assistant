@@ -330,7 +330,7 @@ For more information, check out [this article](https://glow.li/posts/run-an-ssh-
 ### Startup at Reboot
 If the tablet ever restarts (e.g. if it crashes, installs a software update, or runs out of battery), a sequence of startup commands can be put in place so that Home Assistant starts up automatically upon reboot. To make this happpen, first install the Termux:boot application from Google Play or F-Droid. Once installed, launch the app once - this will configure Termux to launch when the system starts after a reboot.
 
-The sequence of commands to execute on startup can be placed in a file in ~/.termux/boot/. Here's an example boot sequence:
+The sequence of commands to execute on startup can be placed in a file in `~/.termux/boot/`. Here's an example boot sequence:
 ```bash
 #! /data/data/com.termux/files/usr/bin/sh
 
@@ -356,12 +356,42 @@ node-red
 ```
 
 ## Configuring Home Assistant
-TODO
+Any Home Assistant configuration specific to installation on a Nexus 7 tablet has been covered above, and some additional configuration related to automations will be covered below. Anything beyond this is "normal" Home Assistant configuration - for that, refer to the [Home Assistant documentation](https://www.home-assistant.io/docs/) and [community forum](https://community.home-assistant.io/).
 
 ## Node-RED Installation
-TODO
-`nodejs`: a prerequisite to installing Node-RED, which will be addressed later in this guide
-	- if you don't plan to use Node-RED, you can leave this out (or install it later)
+[Node-RED](https://nodered.org/) is a visual automation creation suite, which allows the creation of automation routines beyond the complexity possible with the tools in the basic Home Assistant installation. As the name suggests, Node-RED is build upon NodeJS.
+
+[AppDaemon](https://github.com/AppDaemon/appdaemon) is a similar tool which allows for the creation of automations in code (rather than a UI), which would be my personal preference - but there are several issues with the compatibility of AppDaemon on Termux in LineageOS. Feel free to give the installation of AppDaemon a whirl, but this guide will use Node-RED.
+
+To get started, install the required packages on the tablet. Then, start Node-RED.
+```bash
+pkg install nodejs
+npm install node-red
+npm install node-red-contrib-home-assistant-websocket
+node-red
+```
+
+See the [Node-RED documentation](https://nodered.org/docs/getting-started/android) or [this guide](https://dev.to/anthrogan/running-node-red-on-android-4fgi) to troubleshoot any issues with this step.
+
+### Connect Home Assistant to Node-RED
+When using Home Assistant Core, the Node-RED connection will unfortunately not show up in the Home Assistant search menu. It must be installed manually from [this repository](https://github.com/zachowj/hass-node-red).
+
+As a precaution in case the process changes with newer versions of the connection, I have not copied the setup instructions here. See the README in that repository for instructions.
+
+In addition to installing the connection, an Access Token must be created in Home Assistant to allow Node-RED access. Follow the instructions in [this guide](https://zachowj.github.io/node-red-contrib-home-assistant-websocket/guide/#generate-access-token), namely:
+- Open Home Assistant in your web browser or in the companion app.
+- Click your username in the sidebar.
+- Scroll down to the Long-Lived Access Token section, and create a token.
+- Copy the token so you can use it in the next step.
+
+### Connect Node-RED to Home Assistant
+The default port for Node-RED is 1880. The NGINX reverse proxy described above isn't configured to handle traffic to port 1880, meaning Node-RED will only be accessible from your home network. This is recommended because, unlike Home Assistant, Node-RED requires no username and password. Access Node-RED by navigating to `http://192.168.x.x:1880`.
+
+To configure Node-RED to recognize your Home Assistant server, place an Events: all node on the working area and enter its edit menu. Next to `Server`, click the edit pencil to add a new server, and follow the instructions in the UI. You'll need to enter the Access Token you created in Home Assistant. See [this post](https://zachowj.github.io/node-red-contrib-home-assistant-websocket/guide/) for more detailed instructions.
+
+
+All set! You can now create complex automation flows in Node-RED.
+
 
 ## Mosquitto MQTT Installation
 TODO
