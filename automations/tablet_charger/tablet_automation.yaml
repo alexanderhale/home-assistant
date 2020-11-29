@@ -1,0 +1,22 @@
+- alias: Tablet Battery Maintenance
+  description: ''
+  trigger:
+  - type: battery_level
+    platform: device
+    device_id: <tablet_device_id>
+    entity_id: sensor.<tablet_battery_level>
+    domain: sensor
+    below: 65
+  - type: battery_level
+    platform: device
+    device_id: <tablet_device_id>
+    entity_id: sensor.<tablet_battery_level>
+    domain: sensor
+    above: 75
+  condition: []
+  action:
+  - type: toggle
+    device_id: <tablet_plug_device_id>
+    entity_id: switch.<tablet_plug_switch_id>
+    domain: switch
+  mode: single
