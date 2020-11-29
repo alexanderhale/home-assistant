@@ -9,18 +9,15 @@ Further research pointed me toward [Home Assistant](https://www.home-assistant.i
 The Home Assistant installation guide recommends using a Raspberry Pi to run the automation server. I had a Google Nexus 7 (2013) tablet lying around, so I set out to make use of it instead. An additional benefit is that the tablet can be used as a wall-mounted UI for Home Assistant - this is something you can do regardless of where the Home Assistant server is hosted, but this setup allows the server and UI to be run on one device.
 
 ## Prerequisites
-- Hardware: Google Nexus 7 (2013) tablet
-	- This same process should work for any Android device.
+- Hardware: tablet or phone running Android
+	- This guide uses the Google Nexus 7 (2013) tablet as an example.
 - Software: Android 5.0.0
 - Tools: a computer, and a micro USB cable to connect the tablet to the computer
-- Peripherals: a Google Home Mini, and a smart plug 
-     - Peripherals are not required for Home Assistant setup, but most automations you'll want to create will require at least one peripheral.
-
 
 # LineageOS Installation
-The Nexus 7 tablet stopped receiving software updates as of Android 5 (Lollipop). This version of Android causes lots of incompatibilities, where the most recent version of software no longer supports such an old version of Android. In addition, an old tablet is likely to be bogged down with old files and apps - an operating system refresh removes those and speeds the tablet up.
+The Nexus 7 tablet stopped receiving software updates as of Android 5 (Lollipop). Such an old version of Android causes lots of incompatibilities. In addition, an old tablet is likely to be bogged down with old files and apps - an operating system refresh removes those and speeds the tablet up.
 
-You may be able to install more recent versions of Android instead, if you're able to find a ROM for it online. An easier approach is to install [LineageOS](https://www.lineageos.org/), which is a free and open-source Android distribution. The latest version at the time of writing is LineageOS 17.1 (which equates to Android 10). Let's dive into the steps required to install LineageOS on the tablet.
+You may be able to install a more recent version of Android, if you're able to find a ROM for it online, but an easier approach is to install [LineageOS](https://www.lineageos.org/), which is a free and open-source Android distribution. The latest version at the time of writing is LineageOS 17.1 (which equates to Android 10). Let's dive into the steps required to install LineageOS on the tablet.
 
 ## Backup Files
 If you have anything you care about on your Nexus 7 (files, configuration, etc), back it up to another location now. The tablet will be factory reset during the operating system re-install.
@@ -31,20 +28,20 @@ These files will be required for the LineageOS installation:
     - The link is to version 3.4.0, but you can select whatever the latest version is.
 - [LineageOS 17.1](https://lineageos.wickenberg.nu/flo)
     - Navigate to Google > flo, then select the most recent build for version 17.1.
-- [addonsu 17.1](docs/tablet_setup/lineage_os/addonsu-17.1-arm.zip)
+- [addonsu 17.1](https://github.com/alexanderhale/home-assistant/tree/main/docs/tablet_setup/lineage_os/addonsu-17.1-arm.zip)
     - Saved in this repository in case [the source](https://androidfilehost.com/?fid=8889791610682882454) is no longer available.
-- [sysrepart.zip](docs/tablet_setup/lineage_os/sysrepart.zip)
+- [sysrepart.zip](https://github.com/alexanderhale/home-assistant/tree/main/docs/tablet_setup/lineage_os/sysrepart.zip)
     - Saved in this repository in case [the source](https://forum.xda-developers.com/showpost.php?p=76278047&postcount=19) is no longer available.
 - [GApps](https://opengapps.org/) (optional)
     - select ARM, Android 10.0, nano size
 
 ## Install TWRP
-TWRP is a custom recovery tool. We'll replace the default system recovery tools on the device with TWRP. This will make it easier to swap the OS on our device.
+TWRP is a custom recovery tool, which we can use in place of the default system recovery tools on the device.
 
-This can be accomplished using the TWRP app, or by connecting the tablet to a computer and using the Android Debug Bridge (ADB). This guide will use ADB - see [this TWRP installation guide](https://www.xda-developers.com/how-to-install-twrp/) for more details on both options.
+TWRP can be installed using the TWRP app, or by connecting the tablet to a computer and using the Android Debug Bridge (ADB). This guide will use ADB - see [this TWRP installation guide](https://www.xda-developers.com/how-to-install-twrp/) for more details on both options.
 
 ### Step 1 - Enable USB Debugging
-Permission is required to connect the tablet to the computer. On the tablet, enable developer options by finding the "About" section in the settings, then repeatedly tapping the build number section. Enter the developer options menu, then toggle `USB debugging` to on. You can use wireless ADB debugging if you prefer, but file transfers will be slower.
+On the tablet, enable developer options by finding the "About" section in the settings, then repeatedly tapping the build number section. Enter the developer options menu, then toggle `USB debugging` to on. You can use wireless ADB debugging if you prefer, but file transfers will be slower.
 
 ### Step 2 - ADB and Fastboot
 Install ADB and fastboot on your computer. The LineageOS wiki has an [article on how to do this](https://wiki.lineageos.org/adb_fastboot_guide.html) for various operating systems. Once installed, connect the tablet to the computer, then approve the permissions pop-up that appears on the tablet screen. To confirm that the tablet is accessible via ADB, open a terminal and run `adb devices`. Make sure that the tablet appears in the list as a device. 
@@ -65,14 +62,14 @@ Use the volume buttons to scroll to the `Recovery` option, then press the power 
 Confirm that you've backed up everything that was saved on the device. Then, starting from the TWRP home page, navigate to Wipe > Factory Reset, and perform the reset. 
 
 ### Step 2 - Repartition
-The existing partitioning of the device leaves little space for loading the OS and GApps images that we'll be installing in the next step. To check the amount of space, start from the TWRP home page, then navigate to Wipe > Advanced Wipe > System > Repair or Change File System. Take note of the free space listed on the left-hand side of the screen.
+The existing partitioning of the device leaves little space for loading the OS and GApps images that we'll be installing in the next step. To check the amount of space, navigate to Wipe > Advanced Wipe > System > Repair or Change File System. Take note of the free space listed on the left-hand side of the screen.
 
 Return to the TWRP home screen, then navigate to Install > ADB Sideload. Once the sideload is ready, open a terminal on the computer and run `adb sideload sysrepart.zip`. Confirm on the tablet that the image gets flashed successfully.
 
 Return to Repair or Change File System and check the free space - it should have increased.
 
 ### Step 3 - Flash New OS
-The following files must be loaded in the order listed here. If you don't need the Google Play store on your device, then feel free to skip the GApps step.
+The following files must be loaded in the order listed here. If you don't need the Google Play store on your device, feel free to skip the GApps step.
 
 From the TWRP home screen, navigate to Install > ADB Sideload. Once the sideload is ready, open a terminal on your computer and run `adb sideload <lineage_os_filename>.zip`. Confirm on the tablet that the image gets flashed successfully.
 
@@ -85,7 +82,7 @@ For more information, here are a few threads describing this process:
 - [Reddit thread](https://www.reddit.com/r/Nexus7/comments/esy39y/install_android_9_lineage_os_160_on_nexus_7_2013/)
 
 # Home Assistant Installation
-Now that the operating system on the tablet has been swapped from Android to LineageOS, Home Assistant (and related programs) can be installed.
+Now that the operating system on the tablet has been swapped to LineageOS, Home Assistant (and related programs) can be installed.
 
 ## Install F-Droid
 [F-Droid](https://www.f-droid.org/) is a repository for free apps, analogous to the Google Play store. Head to F-Droid's website and download the latest .apk file. Once downloaded, a pop-up will appear - hit `Install`.
@@ -93,12 +90,12 @@ Now that the operating system on the tablet has been swapped from Android to Lin
 If you included GApps in your LineageOS installation, you could skip F-Droid and get Termux (in then next step) from the Google Play store instead. At the time of writing, some of the Termux add-ons are paid in Google Play (but free in F-Droid). You could even install Termux directly from source, if you wanted to avoid repositoiries completely - but this guide will assume that Termux will be downloaded from an app repository.
 
 ## Install Termux
-Most of the Home Assistant installation work will be done on the command line. The most robust UNIX console emulator for Android is Termux. To get Termux, head to F-Droid or Google Play. Search for [Termux](https://f-droid.org/en/packages/com.termux), download it, and install it. While you're here, download and install [Termux:API](https://f-droid.org/en/packages/com.termux.api/) and [Termux:Boot](https://f-droid.org/en/packages/com.termux.boot) as well - we'll need them later.
+Most of the Home Assistant installation work will be done on the command line. The most robust UNIX console emulator for Android is Termux. To get Termux, head to F-Droid or Google Play. Search for [Termux](https://f-droid.org/en/packages/com.termux), download it, and install it. While you're here, download and install [Termux:API](https://f-droid.org/en/packages/com.termux.api/) and [Termux:Boot](https://f-droid.org/en/packages/com.termux.boot) too - we'll need them later.
 
-Since Termux is a command-line, some typing is required, which is not the most conducive to a tablet touch-screen. If you have one, connecting a Bluetooth keyboard would be helpful. If not, you could try a modified on-screen keyboard like [Hacker's Keyboard](https://f-droid.org/en/packages/org.pocketworkstation.pckeyboard/). Before the configuration section later on, we'll connect to the tablet via SSH, so that you can use your computer for the heavier typing required in that section.
+The typing experience on a tablet touch-screen isn't the most conducive to using a command line. If you have one, connecting a Bluetooth keyboard would be helpful. If not, you could try a modified on-screen keyboard like [Hacker's Keyboard](https://f-droid.org/en/packages/org.pocketworkstation.pckeyboard/). Later on, we'll connect to the tablet via SSH, so you can use your computer for configuration and file transfers.
 
 ## Install Packages
-Open up the Termux app. Look around a little bit - notice that your home directory is `/data/data/com.termux/files/home/`, and the `etc` directory (where packages will be installed) is at `/data/data/com.termux/files/usr/etc/`. This is different than a standard UNIX operating system.
+Open up the Termux app. Notice that your home directory is `/data/data/com.termux/files/home/`, and the `etc` directory (where packages will be installed) is at `/data/data/com.termux/files/usr/etc/`. This is different than a standard UNIX operating system.
 
 The package manager in Termux is `pkg`, which is a wrapper around `apt`. You can also use the `apt` command directly, but there's usually no need to do so.
 
@@ -117,7 +114,7 @@ pkg install python nano openssh termux-api make libjpeg-turbo
 ```
 
 ## Install Home Assistant
-The prerequisites are now in place to install Home Assistant. Home Assistant Core is a Python package, available from the PyPi package repository. Here are the commands to run to install it:
+The prerequisites are now in place to install the Home Assistant package from the PyPi Python package repository:
 ```bash
 # create a virtual environment (optional, but recommended)
 python -m venv hass
@@ -126,84 +123,82 @@ source hass/bin/activate
 pip install homeassistant
 ```
 
-The virtual environment is optional - if you don't use one, `pip install homeassistant` will install the Home Assistant packages in your "base" environment. However, using a virtual environment makes your installation isolated - if you want to update your version of Python or Home Assistant, you could do so in a fresh virtual environment to make sure everything is working properly without impacting your existing installation.
+The virtual environment is optional, but recommended - if you don't use one, the packages will be installed in your "base" environment. Using a virtual environment makes your installation isolated - if you want to update your version of Python or Home Assistant, you could do so in a fresh virtual environment to make sure everything is working properly without impacting your existing installation.
 
 ## Run
 Everything is now in place! With your virtual environment activated, execute `hass -v`. During this first startup, keep an eye on the output for error messages, which might indicate that something has been configured incorrectly.
 
 If the startup succeeds, head to `localhost:8123` in a browser on the tablet - the Home Assistant homepage should appear!
 
-For more information, here is [a Medium post](https://lucacesarano.medium.com/install-home-assistant-hass-on-android-no-root-fb65b2341126) describing this process:
+For more information, here is [a Medium post](https://lucacesarano.medium.com/install-home-assistant-hass-on-android-no-root-fb65b2341126) describing this process.
 
 # Addressing Setup
-Home Assistant is now running on the Nexus 7 tablet, and it is accessible from other devices which are also connected to your home network. To access Home Assistant from another device, find your tablet's network IP address (something like `http://192.168.2.xyz`) by running the `ipconfig` command, or by logging in to your router's admin console (usually at `http://192.168.2.1`) and finding your tablet in the list of devices. Then, navigate to that address from another device using port 8123: `http://192.168.2.xyz:8123`. The Home Assistant interface should load, the same way it does for `http://localhost:8123` on your tablet.
+Home Assistant is now accessible from other devices which are also connected to your home network. To access Home Assistant, find your tablet's network IP address (something like `http://192.168.2.xyz`) by running the `ipconfig` command in Termux, or by logging in to your router's admin console (usually at `http://192.168.2.1`) and finding your tablet in the list of devices. Then, navigate to that address from another device using port 8123: `http://192.168.2.xyz:8123`. The Home Assistant interface should load, the same way it does for `http://localhost:8123` on your tablet.
 
-This setup works fine for basic usage, but it lacks robustness. What if your router re-assigns your tablet a new IP address? What if you want to access your Home Assistant setup when you're away from home? What if you want to connect Home Assistant to an external provider like Google Assistant? These are the types of hurdles that will be addressed in this section.
+This setup works, but it is not robust. What if your router re-assigns your tablet a new IP address? What if you want to access your Home Assistant setup when you're away from home? What if you want to connect Home Assistant to an external provider like Google Assistant? These hurdles will be addressed in this section.
 
 ## Static IP Address
-By default, your tablet gets assigned an IP address by your router in a process called [DHCP](https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol). The 'D' in 'DHCP' stands for 'Dynamic', meaning your tablet's assigned IP address could get reassigned at any time, which would break some configuration.
+By default, your tablet gets assigned an IP address by your router in a process called [DHCP](https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol). The 'D' in 'DHCP' stands for 'Dynamic', meaning your tablet's assigned IP address could get reassigned at any time.
 
-To assign a _static_ IP address, go into the Settings app on your tablet. Navigate to WiFi, then tap & hold your home netework. Select Manage Network Settings > Show Advanced Options. Change the IP Setting from DHCP to Static. Enter the IP address that you want your tablet to have - the simplest option is to enter the IP address that your tablet already has. If the Gateway doesn't fill in automatically, enter the same value as your IP address, replacing the last section (after the last `.`) with `1`.
+To assign a _static_ IP address, go into the WiFi settings on your tablet, then tap & hold your home network. Select Manage Network Settings > Show Advanced Options. Change the IP Setting from DHCP to Static, and enter the IP address that you want your tablet to have. If the Gateway doesn't fill in automatically, enter the same value as your IP address, replacing the last section (after the last `.`) with `1`.
 
 [<img src="docs/images/static_ip.png" alt="Static IP Settings" width="600"/>](https://i0.wp.com/thedroidreview.com/wp-content/uploads/2016/03/Set-Static-IP-on-Android.png?fit=900%2C714&ssl=1)
 
-All set! Your tablet will now always receive the same IP address when connected to your home network. For the sake of simplicity in this guide, your tablet's `http://192.168.2.xyz` static IP address will be referred to as the "internal network IP address".
+All set! Your tablet will now always receive the same IP address when connected to your home network. This guide will refer to your tablet's `http://192.168.2.xyz` IP address as the "internal network IP address".
 
 ## Port Forwarding
-The configuration above works only when conneceted to your home network. Your home router knows to route requests at `http://192.168.2.xyz` to your tablet. To prove this, disconnect your phone from WiFi, connect to data, and navigate to your tablet's internal network IP address. Nothing loads!
+The configuration above works only when conneceted to your home network, because your home router knows to route requests at `http://192.168.2.xyz` to your tablet. Try it yourself: disconnect your phone from WiFi, connect to data, and navigate to your tablet's internal network IP address. Nothing loads!
 
-Let's fix that. Just like your tablet has an IP address, your entire home network also has an IP address. Think of your router as the "front door" of an apartment building - there is a number outside the door telling the mail carrier to deliver mail to that building (router), then it is the concierge's (router's) job to distribute the mail to the appropriate apartment number (device, like your tablet) in the building.
+Let's fix that. Just like your tablet has an IP address, your entire home network also has an IP address. Think of your router as the "front door" of an apartment building - there is a number outside the door telling the mail carrier to deliver mail to the concierge (router) of the building, then it is the concierge's (router's) job to distribute the mail to the appropriate apartment number (device, like your tablet) in the building.
 
 [![Internal vs External IP Address](docs/images/internal_external_ip.png)](https://troypoint.com/wp-content/uploads/2019/08/internal-vs-external-ip-address-diagram-600x351.png)
 
 To access Home Assistant from outside your home network, we therefore need to know the "building number" (external IP address of your home network) and "apartment number" (port) to which we should send our requests.
 
-To find the IP address of your home network, you can look in your router's admin console, or you can go to [whatismyipaddress.com](https://whatismyipaddress.com/) and look for the IPv4 field. We now know how to reach the correct "building".
+To find the IP address of your home network, look in your router's admin console, or you can go to [whatismyipaddress.com](https://whatismyipaddress.com/) and look for the IPv4 field.
 
-To route requests to the correct device (apartment), we now need to set up port forwarding. Log in to your router's admin console and find the port forwarding configuration area. Set up a new port forward with the following:
+To route requests to the correct device, we need to set up port forwarding. Find the port forwarding configuration area in your router's admin console and set up a new port forward with the following:
 - External port: 8123
 - Internal port: 8123
 - Internal address: `http://192.168.2.xyz`
 
-Now, when your router receives a request to `http://<external-ip-address>:8123`, it will send it to `http://192.168.2.xyz:8123` - if you recall, this is the address where our Home Assistant installation is running. Test it out on your phone (making sure that you're still connected to mobile data).
+When your router receives a request to `http://<external-ip-address>:8123`, it will now send it to `http://192.168.2.xyz:8123` - the address where our Home Assistant installation is running! Test it out on your phone (while still connected to mobile data).
 
-Great! The Home Assistant installation is now accessible from outside your home network. However, two issues remain:
-- The digits of the external IP address are hard to remember, and some external services (like Google Assistant) will require us to have a proper hostname.
-- We are still accessing Home Assistant via an unencrypted `http://` connection, meaning an intruder could see your username and password.
+Great! Home Assistant is accessible from outside your home network. However, two issues remain:
+- The digits of the external IP address are hard to remember, and some external services (like Google Assistant) require a proper hostname.
+- We are accessing Home Assistant via an unencrypted `http://` connection, meaning an intruder could see your username and password.
 
 We'll resolve those two issues in the next sections.
 
 ## DNS Routing
-The addressing setup completed in the previous step is, for the most part, how all internet traffic gets routed to the correct destination. You'll notice, however, that when you want to make a Google search, you don't navigate to `172.217.1.4` - you navigate to `google.com`. This mapping of human-friendly names to IP addresses is called a "Domain Name System" (DNS).
+When you want to make a Google search, you don't navigate to `172.217.1.4` - you navigate to `google.com`. This mapping of human-friendly names to IP addresses is called a "Domain Name System" (DNS).
 
 Registering a domain name - say, `myhomeassistant.org` - means that you're reserving the right to route traffic arriving at `myhomeassistant.org` to a web server owned by you. Most domain names cost money to reserve, but there are some services like [DuckDNS](https://www.duckdns.org/) and [No-IP](https://www.noip.com/) which offer free domain names. These services make money with their "premium" offerings, which are not required to complete this guide.
 
-One additional feature of domain name services is "dynamic" DNS. The IP address of your router is provided by your internet service provider (ISP), and is liable to change at any time. If you were using that IP address to access your home assistant setup, any such change would break your configuration. A dynamic DNS provider takes this change in stride, automatically sending traffic to the updated IP address whenever it changes.
+One additional feature of domain name services is "dynamic" DNS. The IP address of your router is provided by your internet service provider (ISP), and is liable to change at any time. A dynamic DNS provider takes this change in stride, automatically sending traffic to the updated IP address whenever it changes.
 
-To set up your domain name, head to [No-IP](https://www.noip.com) and create an account. Create whatever hostname you'd like - make it something memorable! We'll call it `hass.noip.org` for simplicity in this guide. Set "IP / Target" to the external IP address of your network, then save the hostname.
+To set up your domain name, create a [No-IP](https://www.noip.com) account. Create whatever hostname you'd like - make it something memorable! We'll call it `hass.noip.org` for simplicity in this guide. Set "IP / Target" to the external IP address of your network, then save the hostname.
 
 After waiting a few hours for the new DNS record to propogate through name servers (or up to 2 days, according to No-IP's documentation), navigating to `http://hass.noip.org:8123` should now bring up your Home Assistant instance. Success!
 
 If you prefer to use DuckDNS or another provider to reserve your hostname, that's no problem - the steps above should work the same.
 
-One common gotcha: if `http://hass.noip.org:8123` does not load for you when connected to your local WiFi, but does work when connected to mobile data, it's likely because your router does not support NAT loopback (also known as NAT Hairpinning). See [Reverse Proxy](#reverse-proxy) below.
+One common gotcha: if `http://hass.noip.org:8123` does not load for you when connected to your local network, but does work when connected to mobile data, it's likely because your router does not support NAT loopback (also known as NAT Hairpinning). See [Reverse Proxy](#reverse-proxy) below.
 
 ## SSL Certificate
-When navigating to `http://hass.noip.org` in the previous step, a notice probably appeared on the left side of your address bar, saying something like "Not Secure!", with an open padlock logo.
+When navigating to `http://hass.noip.org` in the previous step, a notice appeared on the left side of your address bar, saying something like "Not Secure!", with an open padlock logo.
 
 <img src="docs/images/http_insecure.png" alt="HTTP Insecure Warning" width="400"/>
 
-This happens because an `http` connection is _unencrypted_ - traffic to and from the server is in plain text, and could be read by anybody intercepting the traffic via a "man in the middle" attack. An `https` connection (where the `s` stands for "secure") is a better option. If you're not too concerned about security, you could skip this step - but it is required in order to integrate Google Assistant with Home Assistant in later steps of this guide.
+This happens because an `http` connection is _unencrypted_ - traffic to and from the server is in plain text, and could be read by anybody intercepting the traffic via a "man in the middle" attack. An `https` connection (where the `s` stands for "secure") is a better option.
 
-To allow connections via `https`, your server first needs a TLS/SSL certificate. This type of certificate serves two purposes:
-1. It specifies the owner of the certificate, and includes the domain that content signed with this certificate should be coming from (preventing another server from spoofing this server). 
-2. It provides a public key, which anybody wishing to communicate with a server can use to encrypt their traffic.
+To allow connections via `https`, your server first needs a TLS/SSL certificate, which:
+1. Specifies the owner of the certificate, and includes the domain that content signed with this certificate should be coming from (preventing another server from spoofing this server). 
+2. Provides a public key, which anybody wishing to communicate with a server can use to encrypt their traffic.
 
-The certificate is issued by a Certificate Authority, which is an authoratitive body that has been trusted to issue certificates.
+The certificate is issued by a Certificate Authority, which is an authoratitive body that has been trusted to issue certificates. Just like with domains, there are free and paid Certificate Authorities from which certificates can be issued. We'll be using [LetsEncrypt](https://letsencrypt.org/), which is a free option.
 
-Just like with domains, there are free and paid Certificate Authorities from which certificates can be issued. We'll be using [LetsEncrypt](https://letsencrypt.org/) in this guide, which is a free option.
-
-To receive a certificate from LetsEncrypt, you must prove that you "control" the domain for which you are requesting a certificate. That is, traffic to `hass.noip.org` goes to your server, and not somebody else's. This prevents you from generating a certificate for a server that does not belong to you.
+To receive a certificate from LetsEncrypt, you must prove that you "control" the domain - that is, traffic to `hass.noip.org` goes to your server, and not somebody else's. This prevents you from generating a certificate for a server that does not belong to you.
 
 LetsEncrypt provides the handy certbot tool for proving you own a domain, but it is not available in Termux, so some extra steps are required. 
 
@@ -211,8 +206,7 @@ LetsEncrypt provides the handy certbot tool for proving you own a domain, but it
 1. Set up a new port forward on your router, which routes traffic to port `80` of your external IP address to port `80` of your computer's internal IP address.
 2. Install [Apache](https://httpd.apache.org/) on your computer.
 3. Run [certbot](https://certbot.eff.org/) in standalone mode to complete the HTTP-01 challenge.
-4. Transfer the generated certificate files (TODO names) to your tablet via ADB.
-5. Remove the port forward on your router.
+4. Remove the port forward on your router.
 
 #### Option 2 - Complete the DNS-01 Challenge
 See [this blog post](https://www.splitbrain.org/blog/2017-08/10-homeassistant_duckdns_letsencrypt) for instructions.
@@ -228,14 +222,14 @@ http:
 More information details on this process are available in this [instructional blog post](https://community.home-assistant.io/t/installing-tls-ssl-using-lets-encrypt/196975).
 
 ## Reverse Proxy
-Most ISP-provided routers don't support NAT loopback, which means that the domain name configured above won't won't work properly from within the home network. It will load in your browser (if you ignore the certificate warnings), but in the Home Assistant companion app, there is no such option to ignore certificate errors.
+Most ISP-provided routers don't support NAT loopback, which means that the domain name configured above will give a certificate error when accessing it from within the home network. That certificate error can be ignored in the browser, but not in the Home Assistant companion app.
 
 There are a few options to get around this:
-- **New Router**: replacing your router with one that supports NAT loopback is the most straightforward solution, but is not free, and might not be possible depending on your ISP.
-- **Split-Brain DNS**: this involves setting up a DNS server which handles the routing of traffic on your home network. With a normal installation on a proper server this might be a good option, but I'm wary of relying on the Nexus 7 tablet for DNS resolution of all my home traffic.
-- **Reverse Proxy**: this is the approach used in this guide.
+- **New Router**: the most obvious solution, but it is not free, and might not be possible depending on your ISP.
+- **Split-Brain DNS**: setting up a DNS server which handles the routing of traffic on your home network. This could be a good option, but personally I'm wary of relying on the Nexus 7 tablet for DNS resolution of all my home traffic.
+- **Reverse Proxy**: the approach used in this guide.
 
-A [reverse proxy](https://en.wikipedia.org/wiki/Reverse_proxy) is a layer placed in front of a web server to handle incoming traffic. When using a reverse proxy, all traffic arriving at the web server is coming from one source - the proxy - simplifying the configuration required at the web server.
+A [reverse proxy](https://en.wikipedia.org/wiki/Reverse_proxy) is a layer placed in front of a web server to handle incoming traffic. When behind a reverse proxy, all traffic arriving at the web server is coming from one source - the proxy - simplifying the configuration required at the web server.
 
 We'll be using [NGINX](https://www.nginx.com/) as our proxy server. Install it on the tablet with `pkg install nginx`. We'll also need OpenSSL: `pkg install openssl`.
 
@@ -304,42 +298,40 @@ All traffic to Home Assistant should be routed through the proxy - to configure 
 
 ```yaml
 http:
-	server_host: 127.0.0.1  # optional: only permit traffic from localhost (i.e. from the reverse proxy, which is running on the same machine as the tablet)
+	server_host: 127.0.0.1  # optional: only permit traffic from localhost (i.e. from the reverse proxy)
 	use_x_forwarded_for: true
 	trusted_proxies: 127.0.0.1
 ```
 
-Finally, update the port forwarding in your router. Remove the existing port forwarding rule at port 8123. Add two new port forwarding rules:
+Finally, in your router, remove the port forwarding rule at port 8123 and add two new rules:
 - for HTTP traffic: external port: 80, internal port: 80, internal IP address: your tablet
 - for HTTPS traffic: external port: 443, internal port: 443, internal IP address: your tablet
 
-Start nginx by running `nginx` in Termux. Home Assistant should now be accessible via `https://hass.noip.org` from outside your network and `http://192.186.2.xyz:123` from your internal network. In configuration section of the Home Assistant companion app, you can add those two addresses and it will automatically transition between them depending on which network it is connected to.
+Start nginx by running `nginx` in Termux. Home Assistant should now be accessible via `https://hass.noip.org` from outside your network and `http://192.186.2.xyz:8123` from your internal network. In the Home Assistant companion app, you can add those two addresses and it will automatically transition between them.
 
 For additional information, [here's a guide](https://community.home-assistant.io/t/reverse-proxy-using-nginx/196954) on the subject.
 
 ## Remote SSH Access
-Even with an external keyboard, configuring the Nexus 7 tablet on the command line isn't user-friendly. Accessing the command line via the Android Debug Bridge allows the use of the keyboard on your computer (and allows root access) via `adb shell`, but requires the tablet be tethered to the computer. Let's set up SSH access to the tablet so that you can access the command line remotely.
+Let's set up SSH access to the tablet so that you can access the command line remotely.
 
 Here are the steps:
 1. On the Termux command line, install OpenSSH: `pkg install openssh`.
-2. On the Termux command line, enerate an OpenSSH key pair: `ssh-keygen`
+2. On the Termux command line, generate an OpenSSH key pair: `ssh-keygen`
 	- This will will create `~/.ssh/id_rsa` and `~/.ssh/id_rsa.pub`.
 	- On the tablet, place the contents of `~/.ssh/id_rsa.pub` in `~/.ssh/authorized_keys`, change the permissions of `~/.ssh/authorized_keys` to 600, and ensure the permissions of `~/.ssh` are 700.
 	- Copy `~/.ssh/id_rsa` to the computer via ADB, and add it to your SSH client of choice.
 3. On the Termux command line, execute `sshd`.
 
-You should now be able to access the tablet from your computer: e.g. `ssh 192.168.2.123 -p 8022`.
+You should now be able to access the tablet from your computer: `ssh 192.168.2.xyz -p 8022`.
 
-To access the tablet from outside your home network, port forwarding must be configured. This also provides the opportunity of using the default SSH port 22. In the same manner as the Port Forwarding section above, add a new entry in your router that forwards incoming traffic at port 22 to your tablet's IP address at port 8022.
+To access the tablet via SSH from outside your home network, add a new entry in your router's port forwarding settings that routes incoming traffic at port 22 to your tablet's IP address at port 8022. Notice that this allows SSH access via the default port: `ssh hass.noip.org`.
 
-You should now be able to access the tablet from outside your home network: e.g. `ssh hass.noip.org`.
-
-Some formatting issues may come up in the terminal when accessing the tablet via SSH. Executing `export TERM=xterm-256color` in your remote terminal (after logging in via SSH) should resolve most of those issues.
+Some formatting issues may come up in the terminal when accessing the tablet via SSH. Executing `export TERM=xterm-256color` in your remote terminal (after logging in via SSH) should resolve those issues.
 
 For more information, check out [this article](https://glow.li/posts/run-an-ssh-server-on-your-android-with-termux/). 
 
 ## Startup at Reboot
-If the tablet ever restarts (e.g. if it crashes, installs a software update, or runs out of battery), a sequence of startup commands can be put in place so that Home Assistant starts up automatically upon reboot. To make this happpen, first install the Termux:boot application from Google Play or F-Droid. Once installed, launch the app once - this will configure Termux to launch when the system starts after a reboot.
+If the tablet ever restarts, a sequence of startup commands can be put in place so that Home Assistant starts up automatically upon reboot. Install the Termux:boot application from Google Play or F-Droid. Once installed, launch the app once - this will configure Termux to launch when the system starts after a reboot.
 
 The sequence of commands to execute on startup can be placed in a file in `~/.termux/boot/`. Here's an example boot sequence:
 ```bash
@@ -372,11 +364,11 @@ The setup of Home Assistant on the Nexus 7 tablet is now complete! Everything be
 The remainder of this guide will cover the installation of extensions to Home Assistant, because there are some particularities about the Nexus 7 tablet.
 
 # Node-RED Installation
-[Node-RED](https://nodered.org/) is a visual automation creation suite, which allows the creation of automation routines beyond the complexity possible with the tools in the basic Home Assistant installation. As the name suggests, Node-RED is build upon NodeJS.
+[Node-RED](https://nodered.org/) is a visual automation suite, in which you can create automations beyond the complexity available with the basic Home Assistant tools. As the name suggests, Node-RED is build upon NodeJS.
 
-[AppDaemon](https://github.com/AppDaemon/appdaemon) is a similar tool which allows for the creation of automations in code (rather than a UI), which would be my personal preference - but there are several issues with the compatibility of AppDaemon on Termux in LineageOS. Feel free to give the installation of AppDaemon a whirl, but this guide will use Node-RED.
+[AppDaemon](https://github.com/AppDaemon/appdaemon) is a similar tool which allows for the creation of automations in code, but there are several issues with the compatibility of AppDaemon on Termux in LineageOS. Feel free to give the installation of AppDaemon a whirl, but this guide will use Node-RED.
 
-To get started, install the required packages on the tablet. Then, start Node-RED.
+Install the required packages on the tablet, then start Node-RED.
 ```bash
 pkg install nodejs
 npm install node-red
@@ -384,31 +376,28 @@ npm install node-red-contrib-home-assistant-websocket
 node-red
 ```
 
-See the [Node-RED documentation](https://nodered.org/docs/getting-started/android) or [this guide](https://dev.to/anthrogan/running-node-red-on-android-4fgi) to troubleshoot any issues with this step.
+See the [Node-RED documentation](https://nodered.org/docs/getting-started/android) or [this guide](https://dev.to/anthrogan/running-node-red-on-android-4fgi) to troubleshoot any issues installation.
 
 ## Connect Home Assistant to Node-RED
-When using Home Assistant Core, the Node-RED connection will unfortunately not show up in the Home Assistant search menu. It must be installed manually from [this repository](https://github.com/zachowj/hass-node-red).
+When using Home Assistant Core, the Node-RED connection must be installed manually from [this repository](https://github.com/zachowj/hass-node-red). In case the process changes with newer versions of the connection, I have not copied the setup instructions here. See the README in that repository for instructions.
 
-As a precaution in case the process changes with newer versions of the connection, I have not copied the setup instructions here. See the README in that repository for instructions.
-
-In addition to installing the connection, an Access Token must be created in Home Assistant to allow Node-RED access. Follow the instructions in [this guide](https://zachowj.github.io/node-red-contrib-home-assistant-websocket/guide/#generate-access-token), namely:
+After installing the connection, an Access Token must be created in Home Assistant to allow Node-RED access. Follow the instructions in [this guide](https://zachowj.github.io/node-red-contrib-home-assistant-websocket/guide/#generate-access-token), namely:
 - Open Home Assistant in your web browser or in the companion app.
 - Click your username in the sidebar.
 - Scroll down to the Long-Lived Access Token section, and create a token.
 - Copy the token so you can use it in the next step.
 
 ## Connect Node-RED to Home Assistant
-The default port for Node-RED is 1880. The NGINX reverse proxy described above isn't configured to handle traffic to port 1880, meaning Node-RED will only be accessible from your home network. This is recommended because, unlike Home Assistant, Node-RED requires no username and password. Access Node-RED by navigating to `http://192.168.2.xyz:1880`.
+The default port for Node-RED is 1880. If you want to access Node-RED from outside your home network then you can set up a port-forward, but this isn't recommended because Node-RED doesn't require a username or password. Access Node-RED by navigating to `http://192.168.2.xyz:1880`.
 
-To configure Node-RED to recognize your Home Assistant server, place an Events: all node on the working area and enter its edit menu. Next to `Server`, click the edit pencil to add a new server, and follow the instructions in the UI. You'll need to enter the Access Token you created in Home Assistant. See [this post](https://zachowj.github.io/node-red-contrib-home-assistant-websocket/guide/) for more detailed instructions.
-
+To configure Node-RED to recognize your Home Assistant server, place any Home Assistant node on the working area and enter its edit menu. Next to `Server`, click the edit pencil to add a new server, and follow the instructions in the UI. See [this post](https://zachowj.github.io/node-red-contrib-home-assistant-websocket/guide/) for more detailed instructions.
 
 All set! You can now create complex automation flows in Node-RED.
 
 # Google Assistant integration with Home Assistant
 All of the elements are now in place to complete the integration of Google Assistant with Home Assistant. The process is well-documented and liable to change if Google changes its authentication procedure, so I will not re-write it. Follow the "Manual Setup" section of the [Google Assistant integration documentation](https://www.home-assistant.io/integrations/google_assistant/).
 
-Once the setup is complete, all your Google Home devices will appear in Home Assistant, and you can start using them for automations
+Once the setup is complete, all your Google Home devices will appear in Home Assistant, and you can start using them for automations.
 
 # Mosquitto MQTT Installation
 [MQTT](https://en.wikipedia.org/wiki/MQTT) is a messaging protocol for IoT devices. It's useful for passing around the data from sensors: for example, sensors that monitor a [laundry machine](https://www.home-assistant.io/blog/2015/08/26/laundry-automation-with-moteino-mqtt-and-home-assistant/) to sound an alarm when the laundry is complete. 
@@ -423,7 +412,7 @@ mqtt:
 You can now configure your sensors to pass their data to the IP address of your tablet. For more configuration information, see the [Home Assistant page on MQTT](https://www.home-assistant.io/integrations/mqtt/).
 
 # Conclusion
-That's it, that's all! From here, it's up to you: you can create any automation you can dream of. This guide has focused on the configuration process, because it's unique to the Nexus 7 tablet. From here on out, the process of creating automations on the tablet is identical to creating automations on any other Home Assistant installation.
+That's it, that's all! This guide has focused on the configuration process, because it's unique to the Nexus 7 tablet. From here on out, it's in your hands: the process of creating automations on the tablet is identical to creating automations on any other Home Assistant installation.
 
 If there is a step you think I missed, or a snag you ran into during the installation process, please free to open an issue and/or create a PR - let's keep this guide up to date so it remains useful as time goes on.
 
