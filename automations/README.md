@@ -10,16 +10,18 @@ Keeping the tablet permanently charged at 100% could eventually cause a decrease
 
 ### Automation Setup
 In the Home Assistant UI, navigate to Configuration > Automations, and create a new Automation. Add a name and description, and leave the mode as "Single".
-![](tablet_charger/name_and_description.png)
+
+<img src="tablet_charger/name_and_description.png" alt="Charging Automation Name & Description" width="500"/>
 
 In the Triggers section, add two triggers:
 - when the tablet battery rises above 75%
 - when the tablet battery drops below 65%
-![](tablet_charger/75_percent_trigger.png)
-![](tablet_charger/65_percent_trigger.png)
+<img src="tablet_charger/75_percent_trigger.png" alt="Charging Automation 75% Trigger" width="500"/>
+<img src="tablet_charger/65_percent_trigger.png" alt="Charging Automation 65% Trigger" width="500"/>
 
 In the Actions section, select the "Toggle" action.
-![](tablet_charger/toggle_action.png)
+
+<img src="tablet_charger/toggle_action.png" alt="Charging Automation Toggle Action" width="500"/>
 
 If you prefer to manually enter the automation in your automations.yaml, check out [tablet_plug_automation.yaml](tablet_charger/tablet_battery_maintenance_automation.yaml).
 
@@ -41,7 +43,7 @@ In the Configuration > Helpers section of the Home Assistant UI, add an input_bo
 #### Google Assistant
 The Daily Crossword toggle will appear as a switch in Google Assistant. Create a routine to turn on the Daily Crossword switch. The routine will accept a voice command (e.g. "Ok Google, print today's crossword."), or could be set to trigger on a schedule (e.g. every Saturday morning).
 
-![](daily_crossword/google_crossword_routine.jpg)
+<img src="daily_crossword/google_crossword_routine.jpg" alt="Google Home Crossword Routine" width="300"/>
 
 #### Node-RED
 ![](daily_crossword/daily_crossword_flow.png)
@@ -79,7 +81,7 @@ From what I have found, there is no way to set the value of Home Assistant's inp
 
 Create an applet with a trigger type of "Google assistant: say a phrase with a number". You can enter three choices of commands to trigger the action: "set sunrise to #" where # is the time, for example. Note that the value of # must be a number, and not a time, so the flow in Node-RED will be configured to receive a decimal number instead of a time. For example: if you wanted to set an alarm at 7:15 AM, you would say "Ok Google, set sunrise to seven point one five".
 
-![](sunrise_alarm/ifttt_trigger.png)
+<img src="sunrise_alarm/ifttt_trigger.jpg" alt="Sunrise Alarm IFTTT Trigger" width="300"/>
 
 The action of the applet is of type "Webhook" or "Make a web request". Set the URL to the value you can find in the settings of the IFTTT integration in Home Assistant. Use the POST method type and a content type of "application/json". In the body of the request, enter `{"action": "sunrise_alarm_time", "data": {{NumberField}}}`.
 
