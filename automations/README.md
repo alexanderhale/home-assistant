@@ -109,3 +109,8 @@ For the full flow, see [sunrise_alarm_flow.json](sunrise_alarm/sunrise_alarm_flo
 To change the length of time before wake-up time that the lighting sequence begins, adjust the Offset value in the alarm trigger node.
 
 To change the colours and brightnesses used in the wake-up lighting sequence, adjust the values in the dictionary at the top of the `Colour & Brightness Iterator` node.
+
+## Wall Mount
+Not necessarily an automation per se, but one of the main benefits of installing Home Assistant on a tablet is that the installation medium has a built-in touch-screen display. Mounting it on a wall is the best way to make use of that display.
+
+If you have access to a 3D printer, this [design on Thingiverse](https://www.thingiverse.com/thing:664368) takes advantage of the Nexus 7's wireless charging capabilities so that it is easily removable from the mount.

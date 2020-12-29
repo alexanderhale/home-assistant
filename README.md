@@ -205,7 +205,10 @@ LetsEncrypt provides the handy certbot tool for proving you own a domain, but it
 #### Option 1 - Complete the HTTP-01 Challenge Elsewhere
 1. Set up a new port forward on your router, which routes traffic to port `80` of your external IP address to port `80` of your computer's internal IP address.
 2. Install [Apache](https://httpd.apache.org/) on your computer.
+     - Don't start it, though! Certbot will take care of starting and stopping Apache.
 3. Run [certbot](https://certbot.eff.org/) in standalone mode to complete the HTTP-01 challenge.
+     - Certificate creation: `certbot --standalone --preferred-challenges http -d hass.noip.org`
+     - Future renewals: `certbot renew`. Certificates must be renewed every 90 days.
 4. Remove the port forward on your router.
 
 #### Option 2 - Complete the DNS-01 Challenge
