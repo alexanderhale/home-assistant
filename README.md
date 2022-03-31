@@ -119,7 +119,7 @@ The prerequisites are now in place to install the Home Assistant package from th
 # create a virtual environment (optional, but recommended)
 python -m venv hass
 source hass/bin/activate
-
+export CRYPTOGRAPHY_DONT_BUILD_RUST=1
 pip install homeassistant
 ```
 
